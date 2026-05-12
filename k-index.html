@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo de Ping Pong vs IA</title>
+    <title>Jogo de Ping Pong - GitHub Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -22,10 +22,30 @@
             overflow: hidden;
         }
         h1 {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-size: 2.5rem;
             text-transform: uppercase;
             letter-spacing: 3px;
+        }
+        #menu {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: 2px solid #fff;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 5px;
+        }
+        button:hover, button.active {
+            background-color: #fff;
+            color: #111;
         }
         #gameContainer {
             border: 4px solid #fff;
@@ -51,34 +71,55 @@
 
     <h1>Ping Pong</h1>
 
+    <div id="menu">
+        <button id="btnSolo" class="active" onclick="mudarModo('solo')">1 Jogador (vs IA)</button>
+        <button id="btnMulti" onclick="mudarModo('multi')">2 Jogadores (Local)</button>
+    </div>
+
     <div id="gameContainer">
-        <canvas id="pong" width="1000" height="500"></canvas>
+        <canvas id="pong" width="800" height="500"></canvas>
     </div>
 
     <div id="instrucoes">
-        <strong>Controles:</strong><br>
-        Mover para CIMA: Tecla <strong>W</strong><br>
-        Mover para BAIXO: Tecla <strong>S</strong><br>
-                                                    
-        <span style="color: #66ff66;">O segundo jogador é controlado automaticamente pela IA!</span>
+        <span id="textoControles">
+            <strong>Controles:</strong><br>
+            Jogador 1 (Esquerda): Teclas <strong>W</strong> (Cima) e <strong>S</strong> (Baixo)<br>
+            <span style="color: #66ff66;">O segundo jogador é controlado automaticamente pela IA!</span>
+        </span>
     </div>
 
     <script>
         const canvas = document.getElementById("pong");
         const ctx = canvas.getContext("2d");
 
-        // Configuração da IA (0.08 é Médio, 0.12 é Difícil)
+        // Estado do Jogo ("solo" ou "multi")
+        let modoJogo = "solo"; 
         const velocidadeIA = 0.08; 
 
         // Objetos do Jogo
-        const jogador = { x: 10, y: 200, w: 15, h: 100, score: 0, cor: "#FFF" };
-        const ia = { x: 975, y: 200, w: 15, h: 100, score: 0, cor: "#FFF" };
+        const jg1 = { x: 10, y: 200, w: 15, h: 100, score: 0, cor: "#FFF" };
+        const jg2 = { x: 775, y: 200, w: 15, h: 100, score: 0, cor: "#FFF" };
         const bola = { x: 400, y: 250, r: 10, velocidade: 6, dx: 6, dy: 6, cor: "#FFF" };
 
         // Controle de Teclado
         const teclas = {};
         window.addEventListener("keydown", e => teclas[e.key.toLowerCase()] = true);
         window.addEventListener("keyup", e => teclas[e.key.toLowerCase()] = false);
+
+        // Troca o modo e atualiza o texto explicativo
+        function mudarModo(modo) {
+            modoJogo = modo;
+            document.getElementById("btnSolo").classList.toggle("active", modo === "solo");
+            document.getElementById("btnMulti").classList.toggle("active", modo === "multi");
+            
+            const instrucoes = document.getElementById("textoControles");
+            if (modo === "solo") {
+                instrucoes.innerHTML = "<strong>Controles:</strong><br>Jogador 1 (Esquerda): Teclas <strong>W</strong> (Cima) e <strong>S</strong> (Baixo)<br><span style='color: #66ff66;'>O segundo jogador é controlado automaticamente pela IA!</span>";
+            } else {
+                instrucoes.innerHTML = "<strong>Controles:</strong><br>Jogador 1 (Esquerda): Teclas <strong>W</strong> / <strong>S</strong><br>Jogador 2 (Direita): Teclas <strong>Seta Para Cima</strong> / <strong>Seta Para Baixo</strong>";
+            }
+            resetarJogoTotal();
+        }
 
         function dRet(x, y, w, h, cor) {
             ctx.fillStyle = cor;
@@ -113,32 +154,46 @@
             bola.velocidade = 6;
         }
 
+        function resetarJogoTotal() {
+            jg1.score = 0;
+            jg2.score = 0;
+            jg1.y = canvas.height / 2 - jg1.h / 2;
+            jg2.y = canvas.height / 2 - jg2.h / 2;
+            resetarBola();
+        }
+
         function colisao(b, p) {
             return b.x + b.r > p.x && b.x - b.r < p.x + p.w && b.y + b.r > p.y && b.y - b.r < p.y + p.h;
         }
 
         function atualizar() {
-            // Movimento Jogador (W / S)
-            if (teclas['w'] && jogador.y > 0) jogador.y -= 8;
-            if (teclas['s'] && jogador.y < canvas.height - jogador.h) jogador.y += 8;
+            // Movimento Jogador 1 (W / S)
+            if (teclas['w'] && jg1.y > 0) jg1.y -= 8;
+            if (teclas['s'] && jg1.y < canvas.height - jg1.h) jg1.y += 8;
 
-            // Movimento Inteligência Artificial
-            let alvoY = bola.y - (ia.h / 2);
-            ia.y += (alvoY - ia.y) * velocidadeIA;
-
-            if (ia.y < 0) ia.y = 0;
-            if (ia.y > canvas.height - ia.h) ia.y = canvas.height - ia.h;
+            // Movimento do Lado Direito (IA ou Jogador 2 pelas setas)
+            if (modoJogo === "multi") {
+                if (teclas['arrowup'] && jg2.y > 0) jg2.y -= 8;
+                if (teclas['arrowdown'] && jg2.y < canvas.height - jg2.h) jg2.y += 8;
+            } else {
+                let alvoY = bola.y - (jg2.h / 2);
+                jg2.y += (alvoY - jg2.y) * velocidadeIA;
+                if (jg2.y < 0) jg2.y = 0;
+                if (jg2.y > canvas.height - jg2.h) jg2.y = canvas.height - jg2.h;
+            }
 
             // Movimento da Bola
             bola.x += bola.dx;
             bola.y += bola.dy;
 
+            // Rebote no Teto/Chão
             if (bola.y - bola.r < 0 || bola.y + bola.r > canvas.height) {
                 bola.dy = -bola.dy;
             }
 
-            let rebatedor = (bola.x < canvas.width / 2) ? jogador : ia;
+            let rebatedor = (bola.x < canvas.width / 2) ? jg1 : jg2;
 
+            // Física de rebatida baseada na posição do impacto
             if (colisao(bola, rebatedor)) {
                 let pontoImpacto = (bola.y - (rebatedor.y + rebatedor.h / 2)) / (rebatedor.h / 2);
                 let anguloRad = (Math.PI / 4) * pontoImpacto;
@@ -150,11 +205,12 @@
                 bola.velocidade += 0.4;
             }
 
+            // Pontuação e Reinício da Rodada
             if (bola.x - bola.r < 0) {
-                ia.score++;
+                jg2.score++;
                 resetarBola();
             } else if (bola.x + bola.r > canvas.width) {
-                jogador.score++;
+                jg1.score++;
                 resetarBola();
             }
         }
@@ -162,10 +218,10 @@
         function renderizar() {
             dRet(0, 0, canvas.width, canvas.height, "#000");
             dRede();
-            dTexto(jogador.score, canvas.width / 4, 60);
-            dTexto(ia.score, 3 * canvas.width / 4, 60);
-            dRet(jogador.x, jogador.y, jogador.w, jogador.h, jogador.cor);
-            dRet(ia.x, ia.y, ia.w, ia.h, ia.cor);
+            dTexto(jg1.score, canvas.width / 4, 60);
+            dTexto(jg2.score, 3 * canvas.width / 4, 60);
+            dRet(jg1.x, jg1.y, jg1.w, jg1.h, jg1.cor);
+            dRet(jg2.x, jg2.y, jg2.w, jg2.h, jg2.cor);
             dCirc(bola.x, bola.y, bola.r, bola.cor);
         }
 
