@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Ping Pong Simples</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 5px solid #fff;
+            background-color: #000;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="pongCanvas" width="800" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("pongCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Configurações dos jogadores e bola
+        const paddleWidth = 10, paddleHeight = 80;
+        let leftPaddleY = (canvas.height - paddleHeight) / 2;
+        let rightPaddleY = (canvas.height - paddleHeight) / 2;
+        let ballX = canvas.width / 2, ballY = canvas.height / 2;
+        let ballSpeedX = 5, ballSpeedY = 5;
+        let scoreLeft = 0, scoreRight = 0;
+
+        // Teclas pressionadas
+        const keys = {};
+
+        document.addEventListener("keydown", e => keys[e.key] = true);
+        document.addEventListener("keyup", e => keys[e.key] = false);
+
+        function update() {
+            // Movimento Jogador 1 (W e S)
+            if (keys['w'] && leftPaddleY > 0) leftPaddleY -= 7;
+            if (keys['s'] && leftPaddleY < canvas.height - paddleHeight) leftPaddleY += 7;
+
+            // Movimento Jogador 2 (Setas)
+            if (keys['ArrowUp'] && rightPaddleY > 0) rightPaddleY -= 7;
+            if (keys['ArrowDown'] && rightPaddleY < canvas.height - paddleHeight) rightPaddleY += 7;
+
+            // Movimento da bola
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            // Colisão com teto e chão
+            if (ballY <= 0 || ballY >= canvas.height) ballSpeedY *= -1;
+
+            // Colisão com raquetes
+            if (ballX <= paddleWidth && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
+                ballSpeedX *= -1;
+            }
+            if (ballX >= canvas.width - paddleWidth && ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
+                ballSpeedX *= -1;
+            }
+
+            // Marcar ponto
+            if (ballX < 0) {
+                scoreRight++;
+                resetBall();
+            } else if (ballX > canvas.width) {
+                scoreLeft++;
+                resetBall();
+            }
+        }
+
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballSpeedX *= -1;
+        }
+
+        function draw() {
+            // Fundo
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Linha central
+            ctx.strokeStyle = "#fff";
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+
+            // Raquetes
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
+            ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+
+            // Bola
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Placar
+            ctx.font = "30px Arial";
+            ctx.fillText(scoreLeft, canvas.width / 4, 50);
+            ctx.fillText(scoreRight, 3 * canvas.width / 4, 50);
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>
