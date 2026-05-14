@@ -1,371 +1,312 @@
-ping pong robot nuvem
-
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Cloud Pong</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sky Pong</title>
 
   <style>
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-      font-family:Arial, sans-serif;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
     }
 
-    body{
-      overflow:hidden;
-      height:100vh;
-
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      flex-direction:column;
-
-      background:linear-gradient(to bottom,#f7a8cc,#d5b7ff);
+    body {
+      background: linear-gradient(to bottom, #ffd6ec, #ffc0dd);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    h1{
-      margin-bottom:15px;
-      color:white;
-      font-size:70px;
-      font-weight:900;
-
-      -webkit-text-stroke:5px #2e6cff;
-
-      text-shadow:
-      0 0 10px rgba(255,255,255,0.6);
+    canvas {
+      border: 4px solid #6bb7ff;
+      border-radius: 20px;
+      background: linear-gradient(to bottom, #ffdff1, #ffc9e2);
+      box-shadow: 0 0 30px rgba(0,0,0,0.2);
     }
 
-    .menu{
-      margin-bottom:20px;
-      text-align:center;
+    .menu {
+      position: absolute;
+      top: 20px;
+      display: flex;
+      gap: 15px;
+      z-index: 10;
     }
 
-    button{
-      padding:15px 30px;
-      margin:10px;
-
-      border:none;
-      border-radius:16px;
-
-      font-size:24px;
-      font-weight:bold;
-
-      cursor:pointer;
-
-      transition:0.2s;
-
-      color:white;
-
-      border:4px solid white;
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      background: white;
+      color: #4c8ed9;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+      border: 3px solid #6bb7ff;
     }
 
-    .single{
-      background:#ff77bd;
+    button:hover {
+      transform: scale(1.05);
+      background: #e8f4ff;
     }
 
-    .multi{
-      background:#3b82f6;
-    }
-
-    button:hover{
-      transform:scale(1.05);
-    }
-
-    .controls{
-      margin-top:10px;
-      color:#245cff;
-      font-size:24px;
-      font-weight:bold;
-    }
-
-    canvas{
-      border:5px solid #4b7dff;
-      border-radius:30px;
-
-      background:linear-gradient(to bottom,#f8b6d5,#d7bcff);
-
-      box-shadow:
-      0 0 30px rgba(255,255,255,0.4),
-      0 0 40px rgba(76,124,255,0.4);
+    .title {
+      position: absolute;
+      top: 80px;
+      font-size: 42px;
+      color: white;
+      text-shadow: 3px 3px #6bb7ff;
+      font-weight: bold;
     }
   </style>
 </head>
 
 <body>
 
-  <h1>☁ CLOUD PONG ☁</h1>
-
   <div class="menu">
-    <button class="single" onclick="setMode('single')">
-      SINGLEPLAYER
-    </button>
-
-    <button class="multi" onclick="setMode('multi')">
-      MULTIPLAYER
-    </button>
-
-    <div class="controls">
-      JOGADOR 1: W / S
-      &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-      JOGADOR 2: ↑ / ↓
-    </div>
+    <button onclick="setMode('single')">☁ Singleplayer</button>
+    <button onclick="setMode('multi')">☁ Multiplayer</button>
   </div>
 
-  <canvas id="gameCanvas" width="1400" height="720"></canvas>
+  <div class="title">SKY PONG</div>
 
-<script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+  <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
-let gameMode = "single";
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-function setMode(mode){
-  gameMode = mode;
-}
+    let gameMode = "single";
 
-const player1 = {
-  x:80,
-  y:280,
-  width:40,
-  height:150,
-  speed:8,
-  score:0
-};
-
-const player2 = {
-  x:1280,
-  y:280,
-  width:40,
-  height:150,
-  speed:8,
-  score:0
-};
-
-const ball = {
-  x:700,
-  y:360,
-  radius:18,
-  speedX:6,
-  speedY:5
-};
-
-const keys = {};
-
-document.addEventListener("keydown",(e)=>{
-  keys[e.key]=true;
-});
-
-document.addEventListener("keyup",(e)=>{
-  keys[e.key]=false;
-});
-
-function drawCloud(x,y){
-
-  ctx.fillStyle="white";
-  ctx.strokeStyle="#2e6cff";
-  ctx.lineWidth=6;
-
-  ctx.shadowColor="rgba(46,108,255,0.4)";
-  ctx.shadowBlur=15;
-
-  ctx.beginPath();
-
-  ctx.arc(x+10,y+40,28,0,Math.PI*2);
-  ctx.arc(x+25,y+15,30,0,Math.PI*2);
-  ctx.arc(x+50,y+40,30,0,Math.PI*2);
-  ctx.arc(x+30,y+70,35,0,Math.PI*2);
-
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.shadowBlur=0;
-}
-
-function drawBall(){
-
-  ctx.beginPath();
-
-  ctx.fillStyle="white";
-  ctx.strokeStyle="#2e6cff";
-  ctx.lineWidth=5;
-
-  ctx.shadowColor="rgba(255,255,255,0.8)";
-  ctx.shadowBlur=15;
-
-  ctx.arc(ball.x,ball.y,ball.radius,0,Math.PI*2);
-
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.shadowBlur=0;
-}
-
-function drawCenterLine(){
-
-  ctx.strokeStyle="rgba(255,255,255,0.8)";
-  ctx.lineWidth=6;
-
-  ctx.setLineDash([20,20]);
-
-  ctx.beginPath();
-
-  ctx.moveTo(canvas.width/2,50);
-  ctx.lineTo(canvas.width/2,canvas.height-50);
-
-  ctx.stroke();
-
-  ctx.setLineDash([]);
-}
-
-function drawScore(){
-
-  ctx.fillStyle="white";
-
-  ctx.strokeStyle="#2e6cff";
-  ctx.lineWidth=5;
-
-  ctx.font="bold 90px Arial";
-
-  ctx.strokeText(player1.score,580,110);
-  ctx.fillText(player1.score,580,110);
-
-  ctx.strokeText(player2.score,760,110);
-  ctx.fillText(player2.score,760,110);
-}
-
-function drawBackgroundClouds(){
-
-  ctx.globalAlpha=0.35;
-
-  drawMiniCloud(180,120);
-  drawMiniCloud(1050,170);
-  drawMiniCloud(950,500);
-  drawMiniCloud(300,520);
-  drawMiniCloud(500,640);
-
-  ctx.globalAlpha=1;
-}
-
-function drawMiniCloud(x,y){
-
-  ctx.fillStyle="white";
-
-  ctx.beginPath();
-
-  ctx.arc(x,y,25,0,Math.PI*2);
-  ctx.arc(x+30,y-10,30,0,Math.PI*2);
-  ctx.arc(x+60,y,25,0,Math.PI*2);
-
-  ctx.fill();
-}
-
-function movePlayers(){
-
-  if(keys["w"] && player1.y>0){
-    player1.y -= player1.speed;
-  }
-
-  if(keys["s"] && player1.y<canvas.height-120){
-    player1.y += player1.speed;
-  }
-
-  if(gameMode==="multi"){
-
-    if(keys["ArrowUp"] && player2.y>0){
-      player2.y -= player2.speed;
+    function setMode(mode) {
+      gameMode = mode;
+      resetBall();
     }
 
-    if(keys["ArrowDown"] && player2.y<canvas.height-120){
-      player2.y += player2.speed;
+    const paddleWidth = 15;
+    const paddleHeight = 120;
+
+    let leftPaddle = {
+      x: 20,
+      y: canvas.height / 2 - paddleHeight / 2,
+      width: paddleWidth,
+      height: paddleHeight,
+      speed: 7
+    };
+
+    let rightPaddle = {
+      x: canvas.width - 35,
+      y: canvas.height / 2 - paddleHeight / 2,
+      width: paddleWidth,
+      height: paddleHeight,
+      speed: 7
+    };
+
+    let ball = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      radius: 12,
+      speedX: 6,
+      speedY: 6
+    };
+
+    let scoreLeft = 0;
+    let scoreRight = 0;
+
+    const keys = {};
+
+    document.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+    });
+
+    document.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    function resetBall() {
+      ball.x = canvas.width / 2;
+      ball.y = canvas.height / 2;
+
+      ball.speedX = (Math.random() > 0.5 ? 6 : -6);
+      ball.speedY = (Math.random() > 0.5 ? 6 : -6);
     }
 
-  }else{
+    function drawCloud(x, y, scale = 1) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(scale, scale);
 
-    let center = player2.y + 60;
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "#6bb7ff";
+      ctx.lineWidth = 4;
 
-    if(center < ball.y-35){
-      player2.y += 5;
+      ctx.beginPath();
+      ctx.arc(0, 0, 25, 0, Math.PI * 2);
+      ctx.arc(30, -10, 30, 0, Math.PI * 2);
+      ctx.arc(60, 0, 25, 0, Math.PI * 2);
+      ctx.arc(30, 15, 28, 0, Math.PI * 2);
+      ctx.closePath();
+
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
     }
 
-    if(center > ball.y+35){
-      player2.y -= 5;
+    function drawBackground() {
+      drawCloud(150, 120, 1.2);
+      drawCloud(400, 80, 0.9);
+      drawCloud(700, 140, 1.4);
+      drawCloud(850, 70, 0.8);
     }
-  }
-}
 
-function moveBall(){
+    function drawPaddle(paddle) {
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "#6bb7ff";
+      ctx.lineWidth = 4;
 
-  ball.x += ball.speedX;
-  ball.y += ball.speedY;
+      ctx.beginPath();
+      ctx.roundRect(
+        paddle.x,
+        paddle.y,
+        paddle.width,
+        paddle.height,
+        20
+      );
 
-  if(ball.y < 15 || ball.y > canvas.height-15){
-    ball.speedY *= -1;
-  }
+      ctx.fill();
+      ctx.stroke();
+    }
 
-  if(
-    ball.x-ball.radius < player1.x+80 &&
-    ball.y > player1.y &&
-    ball.y < player1.y+120
-  ){
-    ball.speedX *= -1;
-  }
+    function drawBall() {
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "#6bb7ff";
+      ctx.lineWidth = 4;
 
-  if(
-    ball.x+ball.radius > player2.x &&
-    ball.y > player2.y &&
-    ball.y < player2.y+120
-  ){
-    ball.speedX *= -1;
-  }
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
 
-  if(ball.x < 0){
-    player2.score++;
-    resetBall();
-  }
+    function drawScore() {
+      ctx.fillStyle = "white";
+      ctx.font = "48px Arial";
+      ctx.strokeStyle = "#6bb7ff";
+      ctx.lineWidth = 3;
 
-  if(ball.x > canvas.width){
-    player1.score++;
-    resetBall();
-  }
-}
+      ctx.strokeText(scoreLeft, canvas.width / 2 - 100, 60);
+      ctx.strokeText(scoreRight, canvas.width / 2 + 70, 60);
 
-function resetBall(){
+      ctx.fillText(scoreLeft, canvas.width / 2 - 100, 60);
+      ctx.fillText(scoreRight, canvas.width / 2 + 70, 60);
+    }
 
-  ball.x = canvas.width/2;
-  ball.y = canvas.height/2;
+    function update() {
+      // Player 1
+      if (keys["w"] && leftPaddle.y > 0) {
+        leftPaddle.y -= leftPaddle.speed;
+      }
 
-  ball.speedX *= -1;
+      if (keys["s"] && leftPaddle.y < canvas.height - leftPaddle.height) {
+        leftPaddle.y += leftPaddle.speed;
+      }
 
-  ball.speedY = (Math.random()*6)-3;
-}
+      // Player 2 ou IA
+      if (gameMode === "multi") {
+        if (keys["ArrowUp"] && rightPaddle.y > 0) {
+          rightPaddle.y -= rightPaddle.speed;
+        }
 
-function update(){
+        if (keys["ArrowDown"] && rightPaddle.y < canvas.height - rightPaddle.height) {
+          rightPaddle.y += rightPaddle.speed;
+        }
+      } else {
+        // IA simples
+        let center = rightPaddle.y + rightPaddle.height / 2;
 
-  movePlayers();
-  moveBall();
+        if (center < ball.y - 35) {
+          rightPaddle.y += 5;
+        } else if (center > ball.y + 35) {
+          rightPaddle.y -= 5;
+        }
+      }
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+      // Movimento da bola
+      ball.x += ball.speedX;
+      ball.y += ball.speedY;
 
-  drawBackgroundClouds();
-  drawCenterLine();
+      // Colisão topo/baixo
+      if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+        ball.speedY *= -1;
+      }
 
-  drawCloud(player1.x,player1.y);
-  drawCloud(player2.x,player2.y);
+      // Colisão esquerda
+      if (
+        ball.x - ball.radius < leftPaddle.x + leftPaddle.width &&
+        ball.y > leftPaddle.y &&
+        ball.y < leftPaddle.y + leftPaddle.height
+      ) {
+        ball.speedX *= -1.05;
+      }
 
-  drawBall();
-  drawScore();
+      // Colisão direita
+      if (
+        ball.x + ball.radius > rightPaddle.x &&
+        ball.y > rightPaddle.y &&
+        ball.y < rightPaddle.y + rightPaddle.height
+      ) {
+        ball.speedX *= -1.05;
+      }
 
-  requestAnimationFrame(update);
-}
+      // Pontuação
+      if (ball.x < 0) {
+        scoreRight++;
+        resetBall();
+      }
 
-update();
-</script>
+      if (ball.x > canvas.width) {
+        scoreLeft++;
+        resetBall();
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawBackground();
+
+      // Linha central
+      ctx.strokeStyle = "rgba(255,255,255,0.5)";
+      ctx.setLineDash([10, 15]);
+
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2, 0);
+      ctx.lineTo(canvas.width / 2, canvas.height);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+
+      drawPaddle(leftPaddle);
+      drawPaddle(rightPaddle);
+      drawBall();
+      drawScore();
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
 
 </body>
 </html>
-
+```
